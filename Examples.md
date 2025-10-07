@@ -675,3 +675,223 @@
 > *FTPDownloadFile*(FTP, **"test.txt"**, **"test.txt"**) // Скачиваем
 > файл с FTP сервера. Файл test.txt будет скачан в папку
 > %allusersprofile%\MikroBILL\Scripts\Files\\
+
+### Пример 14. Запрос сигнала абонента на olt BDCON EPON
+
+
+```
+var TelnetConn
+var Tx_Level
+var AlertLevel
+var OLTPorts
+var ONUS
+var OLTPortNumber
+var ONUNumber
+var TelnetCommand
+var log_string
+var level
+var level1
+// var ClientExt
+var massive[100]
+
+// AlertLevel = -28.0
+// OLTPorts = 1
+// ONUS = 128
+
+OLTPortNumber = 1
+ONUNumber = 1
+
+
+if GetClientField( ClientExt, "PON Port") = 0 then end 
+
+
+OLTPortNumber = Mid( GetClientField( ClientExt, "PON Port"), 5, 1 ) // Получает значение из дополнительного поля      
+
+ONUNumber = GetClientField( ClientExt, "ONU #") // Получает значение из дополнительного поля
+
+TelnetConn = CreateTelnetConnection("xx.xx.xx.xx", 23, "user", "pass") 
+if TelnetConn = 0 then end 
+TelnetSendSync(TelnetConn,"enable" )
+TelnetSendSync(TelnetConn,"config" )
+TelnetSendSync(TelnetConn,"interface gpon 0/0" )
+TelnetCommand =  "show ont optical-info " & OLTPortNumber & " " & ONUNumber 
+Tx_Level = TelnetSendSync(TelnetConn, TelnetCommand, massive )
+level = Mid( massive[8], 1, 100)
+// alert ( level )
+alert ( massive )
+
+
+TelnetSendSync(TelnetConn,"end" )
+     
+end
+```
+
+### Пример 15. Запрос сигнала абонента на olt CDATA EPON
+> для CDATA PON
+> надо в  карточке клиента добавить поля PON Port   и ONU #
+
+```
+var TelnetConn
+var Tx_Level
+var AlertLevel
+var OLTPorts
+var ONUS
+var OLTPortNumber
+var ONUNumber
+var TelnetCommand
+var log_string
+var level
+var level1
+var massive[512]
+
+AlertLevel = -28.0
+
+OLTPorts = 1
+ONUS = 60
+
+OLTPortNumber = 1
+ONUNumber = 1
+
+TelnetConn = CreateTelnetConnection("xx.xx.xx.xx", 23, "user", "pass") 
+if TelnetConn = 0 then end 
+
+TelnetSendSync(TelnetConn,"enable" )
+TelnetSendSync(TelnetConn,"config" )
+TelnetSendSync(TelnetConn,"interface gpon 0/0" )
+
+
+loop2:
+loop1:
+log_string = " "
+TelnetCommand =  "show ont optical-info " & OLTPortNumber & " " & ONUNumber 
+Tx_Level = TelnetSendSync(TelnetConn, TelnetCommand, massive )
+level1 = Mid( massive[8], 45, 6)
+
+if level1 < AlertLevel then alert ("MENI_OLT Gpon 0/" & OLTPortNumber & ":" & ONUNumber & "   " & level1  )
+if level1 = "" then goto loop3 
+if level1 < AlertLevel then SendMail("MENI_OLT Gpon 0/" & OLTPortNumber & ":" & ONUNumber & " " & level1, "mikrobill_user")
+
+      
+
+AppendLineInFile ("MENI_ONUS_Signal.txt", "Gpon 0/" & OLTPortNumber & ":" & ONUNumber & " " & level1 )  
+
+
+loop3:
+ONUNumber = ONUNumber + 1
+
+if ONUNumber <= ONUS then goto loop1
+
+
+ONUNumber = 1
+OLTPortNumber = OLTPortNumber + 1
+
+if (OLTPortNumber <= OLTPorts) then goto loop2
+     
+TelnetSendSync(TelnetConn,"end" )
+```
+
+### Пример 16. Варианты загрузки из сбербанк реестра
+```
+// вариант 1
+var info_pay[0]
+var data_pay
+var c,d
+
+c = 0
+d = FileLinesCount("sber.txt")
+loop:
+data_pay =  ReadFileLine("sber.txt", c)
+split(data_pay,";",info_pay)
+addmoney(info_pay[7],"Sberbank - " & info_pay[0] & ":" & info_pay[1] ,info_pay[5])
+WriteToLog("Abonent: "& info_pay[5] &", summa platezha: "& info_pay[7])
+c = c +1
+if (c < d-1) then goto loop
+WriteToLog("Balans uspeshno popolnen y " & d-1 & " klientov!")
+```
+
+### Пример 17. Варианты выгрузки в сбербанк реестра
+
+
+```
+// вариант 1
+var all_clients[0]
+var c,d,FIO,CONTRACT,TARIF
+
+c = 0
+d = GetCountClients()
+GetClients(all_clients)
+// DeleteFile("reestr.txt")
+
+loop1:
+CONTRACT = GetClientContract(all_clients[c])
+FIO = GetClientFIO(all_clients[c])
+TARIF = GetTarif(CONTRACT)
+if TARIF = "АРХИВ" then
+ c = c+1
+else
+ AppendLineInFile("reestr.txt",CONTRACT & ";" & FIO & ";0")
+c = c+1
+End if
+if c < d then goto loop1
+
+```
+
+```
+// вариант 2
+var all_clients[0]
+var c,d,FIO,CONTRACT,TARIF
+
+c = 0
+d = GetCountClients()
+GetClients(all_clients)
+DeleteFile("reestr.txt")
+
+loop1:
+CONTRACT = GetClientContract(all_clients[c])
+
+FIO = GetClientFIO(all_clients[c])
+IF FIO = "  " then
+ c = c+1
+goto loop1
+End if
+
+TARIF = GetTarif(CONTRACT)
+if TARIF = "АРХИВ" then
+ c = c+1
+else
+ AppendLineInFile("reestr.txt",CONTRACT & ";" & FIO & ";0", "WINDOWS-1251")
+ c = c+1
+End if
+if c < d then goto loop1
+```
+
+
+```
+// вариант 3
+var all_clients[0]
+var c,d,FIO,CONTRACT,TARIF
+
+c = 0
+d = GetCountClients()
+GetClients(all_clients)
+DeleteFile("reestr.txt")
+
+loop1:
+CONTRACT = GetClientContract(all_clients[c])
+
+TARIF = GetTarif(CONTRACT)
+if TARIF = "АРХИВ" then
+ c = c+1
+goto loop1
+End if
+
+FIO = GetClientFIO(all_clients[c])
+IF FIO = "  " then
+ c = c+1
+else
+ AppendLineInFile("reestr.txt",CONTRACT & ";" & FIO & ";0", "WINDOWS-1251")
+ c = c+1
+End if
+if c < d then goto loop1
+```
+
