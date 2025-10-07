@@ -1,5 +1,6 @@
 # Mikrobill-help
 Справка по микробилл (mikrobill)
-[Руководство пользователя](MikroBILL_Help.md)
-[Руководство по встроенному языку](Description.md)
-[Примеры скриптов](Examples.md)
+
+- [Руководство пользователя](MikroBILL_Help.md)
+- [Руководство по встроенному языку](Description.md)
+- [Примеры скриптов](Examples.md)
