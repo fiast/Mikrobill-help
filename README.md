@@ -7,3 +7,4 @@
 - [Ответы на вопросы для эксплутации](QnA.md)
 - [Описание модуля M2M Мегафон](SoftModule.md)
 - [Vyos BNG PPPoE server](vyos-bng-pppoe-vrf-firewall.md)
+- [Миграция с bare metal Windows server 2022 на VM Proxmox 9](windows-2022-migrate-to-pve.md)
