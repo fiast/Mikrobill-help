@@ -8,4 +8,6 @@
 - [Описание модуля M2M Мегафон](SoftModule.md)
 - [Vyos BNG PPPoE server](vyos-bng-pppoe-vrf-firewall.md)
 - [Миграция с bare metal Windows server 2022 на VM Proxmox 9](windows-2022-migrate-to-pve.md)
-- [Опыт использования mergerfs как программного объединителя дисков без RAID](mergerfs.md)
+- [Опыт использования mergerfs как программного объединителя дисков без RAID]
+(mergerfs.md)
+- [Настройка Netflow для Debian/ubuntu bras в микробилл](mikrobill_netflow_setup.md)
